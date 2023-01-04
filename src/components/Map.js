@@ -50,9 +50,13 @@ const Form = styled.form`
   align-items: center;
   gap: 10px
 `
-
 const markerIcon = new Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.2/dist/images/marker-icon-2x.png',
+  iconSize: [32, 50]
+})
+
+const markerIcon2 = new Icon({
+  iconUrl: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|e85141&chf=a,s,ee00FFFF',
   iconSize: [32, 50]
 })
 
@@ -89,8 +93,13 @@ const Map = ()=>{
     },[r])
 
     const fetchtoilettes = async()=>{
-      const toilettesData = await fetch(`http://localhost:5000/toilettes?r=${r}&latitude=${latitude}&longitude=${longitude}`)
-      setToilettes(toilettesData)
+      const request = await fetch(`http://localhost:5000/toilettes?r=${r}&latitude=${latitude}&longitude=${longitude}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      })
+      const response = await request.json()
+      setToilettes(response)
     }
 
     const handleGeoChange = e =>{
@@ -120,7 +129,7 @@ const Map = ()=>{
       e.preventDefault()
       setlatitude(newLatitude)
       setLongitude(newLongitude)
-      setPosition({lat: {newLatitude}, lng: {newLongitude}})
+      setPosition({lat: newLatitude, lng: newLongitude})
     }
 
     return(
@@ -137,17 +146,17 @@ const Map = ()=>{
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={position} icon={markerIcon}>
+            <Marker position={position} icon={markerIcon2}>
               <Popup>
                 Ma position
               </Popup>
             </Marker>
             {toilettes.length>0 && toilettes.map(toilette=>{
-              return(<Marker position={toilette.position} icon={markerIcon} key={toilette.adresse}>
+              return(<Marker position={{lat:toilette.position.coordinates[1],lng:toilette.position.coordinates[0]}} icon={markerIcon} key={toilette.id}>
                   <Popup>
-                    {toilette.adresse}                    
-                    {toilette.arrondissement}
-                    {toilette.horaire}
+                    <p>{toilette.adresse}  </p>                  
+                    <p>{toilette.arrondissement}</p>
+                    <p>{toilette.horaire}</p>
                   </Popup>
               </Marker>)
             })}
